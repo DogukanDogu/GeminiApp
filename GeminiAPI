@@ -1,0 +1,118 @@
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+
+public class GeminiAPI {
+	 
+	 private String API_KEY = "MASKED";
+	 private String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
+	 private long starttime = 0;
+	 private long endtime = 0;
+
+	    public String getGeminiRequest(String userInput) {
+	     String text = null;
+	     
+	     starttime = System.currentTimeMillis() / 1000;
+	     
+	        try {
+	       
+	            JSONObject jsonRequest = new JSONObject();
+	            JSONArray contentsArray = new JSONArray();
+	            JSONObject contentObj = new JSONObject();
+	            contentObj.put("role", "user");
+	            JSONArray partsArray = new JSONArray();
+	            JSONObject partObj = new JSONObject();
+	            
+	            userInput = new String(userInput.getBytes("ISO-8859-1"), "UTF-8");
+
+	            partObj.put("text", userInput);
+	            
+	            partsArray.put(partObj);
+	            contentObj.put("parts", partsArray);
+	            contentsArray.put(contentObj);
+	            jsonRequest.put("contents", contentsArray);
+
+	            JSONObject generationConfig = new JSONObject();
+	            generationConfig.put("temperature", 2);
+	            generationConfig.put("topK", 40);
+	            generationConfig.put("topP", 0.95);
+	            generationConfig.put("maxOutputTokens", 8192);
+	            generationConfig.put("responseMimeType", "text/plain");
+
+	            jsonRequest.put("generationConfig", generationConfig);
+
+	            
+	            URL url = new URL(API_URL);
+	            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+	            connection.setRequestMethod("POST");
+	            connection.setRequestProperty("Content-Type", "application/json; utf-8");
+	            connection.setDoOutput(true);
+
+	       
+	            try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
+	                wr.writeBytes(jsonRequest.toString());
+	            }
+
+	           
+	            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+	            StringBuilder response = new StringBuilder();
+	            String line;
+	            while ((line = in.readLine()) != null) {
+	                response.append(line);
+	            }
+	            in.close();
+
+	            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	            Object jsonObject = gson.fromJson(response.toString(), Object.class);
+
+	           
+	            String prettyJson = gson.toJson(jsonObject);
+	            
+	            ObjectMapper objectMapper = new ObjectMapper();
+	            
+	            try {
+	                
+	                JsonNode root = objectMapper.readTree(prettyJson);
+
+	                text = root.path("candidates")
+	                                   .get(0)
+	                                   .path("content")
+	                                   .path("parts")
+	                                   .get(0)
+	                                   .path("text")
+	                                   .asText();
+
+	                
+	            } catch (IOException e) {
+	                e.printStackTrace();
+	            }
+	            
+	     
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    	
+	        endtime = System.currentTimeMillis() / 1000;
+	        
+	    	return text;
+	    }
+	    
+	    public long getExecutionTime() {
+	    	return endtime - starttime;
+	    }
+	    
+	     
+}
