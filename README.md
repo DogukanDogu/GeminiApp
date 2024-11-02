@@ -4,4 +4,5 @@ Kullanabilmek için GeminiApp.jar dosyasını indirip çift tıklamak yeterlidir
    -Java Runtime Environment 1.8 ve üstü olmalıdır.
    -internet bağlantısı aktif olmalıdır.
 
+"Soru Sor" alanına istediğiniz soruları yazıp ENTER tuşuna basarak, cevap alabilirsiniz.
   
