@@ -1,0 +1,148 @@
+import javax.swing.JFrame;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.RowSpec;
+import com.jgoodies.forms.layout.FormSpecs;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+import javax.swing.SwingConstants;
+import javax.swing.JTextArea;
+import javax.swing.JButton;
+
+public class GeminiAppGUI extends JFrame{
+	
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3996822503225665484L;
+	private JTextArea textAreaPromptResult = new JTextArea();
+	private JTextArea textAreaPromptInput = new JTextArea();
+	private JLabel lblDisplayExecutionTime = new JLabel();
+	private JButton btnClear = new JButton();
+	private JButton btnExit = new JButton();
+  
+    
+	public GeminiAppGUI() {
+		jbinit();
+	}
+	
+	private void jbinit() {
+		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		getContentPane().setLayout(new FormLayout(new ColumnSpec[] {
+				FormSpecs.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("max(100dlu;default)"),
+				FormSpecs.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("max(140dlu;default)"),
+				FormSpecs.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("max(186dlu;default)"),
+				FormSpecs.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("max(135dlu;default)"),
+				FormSpecs.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("max(132dlu;default)"),
+				FormSpecs.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("default:grow"),},
+			new RowSpec[] {
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				FormSpecs.DEFAULT_ROWSPEC,
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("max(130dlu;default)"),
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("max(190dlu;default):grow"),
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				FormSpecs.DEFAULT_ROWSPEC,}));
+		lblDisplayExecutionTime.setFont(new Font("Tahoma", Font.BOLD, 12));
+		
+		getContentPane().add(lblDisplayExecutionTime, "2, 2, fill, fill");
+		btnExit.setFont(new Font("Tahoma", Font.BOLD, 14));
+		
+		btnExit.setText("ÇIKIŞ");
+		btnExit.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+		
+				btnClear.setFont(new Font("Arial", Font.BOLD, 14));
+				
+				getContentPane().add(btnClear, "8, 2, fill, fill");
+				btnClear.setText("TEMİZLE");
+				btnClear.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						clearAll();
+					}
+				});
+		
+		getContentPane().add(btnExit, "10, 2, fill, fill");
+		
+		JLabel lblPrompt = new JLabel("Soru Sor :");
+		lblPrompt.setVerticalAlignment(SwingConstants.TOP);
+		lblPrompt.setHorizontalAlignment(SwingConstants.LEFT);
+		lblPrompt.setFont(new Font("Tahoma", Font.BOLD, 20));
+		getContentPane().add(lblPrompt, "2, 4, fill, fill");
+		textAreaPromptInput.setFont(new Font("Arial", Font.BOLD, 11));
+		
+		getContentPane().add(textAreaPromptInput, "4, 4, 9, 1, fill, fill");
+		
+		textAreaPromptInput.addKeyListener(new KeyAdapter() {
+		    @Override
+		    public void keyPressed(KeyEvent e) {
+		        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+		        	enterPrompt();
+		            e.consume();
+		        }
+		    }
+		});
+		
+		textAreaPromptResult.setEditable(false);
+		textAreaPromptResult.setFont(new Font("Arial", Font.BOLD, 14));
+		JScrollPane scrollPaneTextAreaPromptResult = new JScrollPane(
+                textAreaPromptResult,
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
+        );
+		getContentPane().add(scrollPaneTextAreaPromptResult, "2, 6, 11, 1, fill, fill");
+		
+	}
+	
+	private void enterPrompt() {
+		
+		if (textAreaPromptInput.getText() == null) {
+			JOptionPane.showMessageDialog(this,"Lütfen Prompt giriniz.","Hata", JOptionPane.INFORMATION_MESSAGE);
+			 return;
+		}
+		
+		
+		GeminiAPI api = new GeminiAPI();
+		
+        String text = api.getGeminiRequest(textAreaPromptInput.getText().trim());
+        
+        if (text != null) {
+        	textAreaPromptResult.setText(text);
+        }
+        
+        lblDisplayExecutionTime.setText("Sorgulama Süresi : " +  api.getExecutionTime() + " sn ");
+        
+	}
+	
+	private void clearAll() {
+		textAreaPromptInput.setText("");
+		textAreaPromptResult.setText("");
+		lblDisplayExecutionTime.setText("Sorgulama Süresi : ");
+	}
+	
+	public static void main(String[] args) {
+		GeminiAppGUI window = new GeminiAppGUI();
+		window.setVisible(true);
+	}
+}
